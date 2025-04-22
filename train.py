@@ -40,14 +40,20 @@ def main():
                            std=[0.229, 0.224, 0.225])
     ])
     
-    # Load ImageNet-100 dataset
-    train_dataset = datasets.ImageFolder(
-        root='path/to/imagenet-100/train',
-        transform=train_transform
-    )
+    # Load ImageNet-100 dataset with different foveated versions
+    train_datasets = []
+    for version in ['X1', 'X2', 'X3', 'X4']:
+        dataset = datasets.ImageFolder(
+            root=f'data/imagenet-100/train.{version}',
+            transform=train_transform
+        )
+        train_datasets.append(dataset)
+    
+    # Combine all training datasets
+    train_dataset = torch.utils.data.ConcatDataset(train_datasets)
     
     val_dataset = datasets.ImageFolder(
-        root='path/to/imagenet-100/val',
+        root='data/imagenet-100/val.X',  # Using foveated validation set
         transform=val_transform
     )
     
