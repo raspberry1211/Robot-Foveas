@@ -7,6 +7,7 @@ from FovConvNeXt.models import make_model
 import os
 
 def main():
+    print('Beginning training...')
     # Training parameters
     batch_size = 128
     num_epochs = 100
