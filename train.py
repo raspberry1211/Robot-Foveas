@@ -13,10 +13,10 @@ def main():
     num_epochs = 100
     learning_rate = 1e-3
     num_workers = 4
-    n_fixations = 3  # Number of fixations for the active vision model
+    n_fixations = 1  # Number of fixations for the active vision model
     
     # Model parameters
-    radius = 0.5
+    radius = 0.6
     block_sigma = 0.1
     block_max_ord = 2
     patch_sigma = 0.1
@@ -158,7 +158,7 @@ def main():
                 'val_loss': val_loss/len(val_loader),
                 'train_acc': train_acc,
                 'val_acc': val_acc
-            }, f'checkpoint_epoch_{epoch+1}.pth')
+            }, f'train_2_checkpoint_epoch_{epoch+1}.pth')
 
 if __name__ == '__main__':
     main() 
