@@ -39,3 +39,22 @@ def log_fibonacci(n_nodes, fovea_radius, fovea_density, auto=False, verbose=True
     out = np.stack((x, y), axis=0)
     return torch.tensor(out).float().T.contiguous()
 
+def uniform_fibonacci(n_nodes, verbose=True):
+    """
+    Creates a uniform sampling pattern using a Fibonacci spiral
+    """
+    g_ratio = (np.sqrt(5)+1) / 2
+    theta = np.pi * 2 * g_ratio * np.arange(1, n_nodes+1)
+    
+    # For uniform sampling, we use a linear spacing for the radius
+    r = np.linspace(0, 1, n_nodes)
+    
+    sort_idx = np.argsort(theta)
+    theta = theta[sort_idx]
+    r = r[sort_idx]
+    
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
+    out = np.stack((x, y), axis=0)
+    return torch.tensor(out).float().T.contiguous()
+

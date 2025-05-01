@@ -17,17 +17,20 @@ def main():
     
     # Model parameters
     radius = 0.6
-    block_sigma = 0.1
+    block_sigma = 0.05
     block_max_ord = 2
-    patch_sigma = 0.1
+    patch_sigma = 0.05
     patch_max_ord = 2
-    ds_sigma = 0.1
+    ds_sigma = 0.05
     ds_max_ord = 2
     
     # Data augmentation and normalization
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+        transforms.RandomRotation(15),
+        transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                            std=[0.229, 0.224, 0.225])
@@ -74,10 +77,10 @@ def main():
         pin_memory=True
     )
     
-    # Create model
+    # Create model with reduced complexity
     model = make_model(
         n_fixations=n_fixations,
-        n_classes=100,  # ImageNet-100 has 100 classes
+        n_classes=100,
         radius=radius,
         block_sigma=block_sigma,
         block_max_ord=block_max_ord,
@@ -92,8 +95,8 @@ def main():
     model = model.to(device)
     
     # Loss function and optimizer
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
     
     # Learning rate scheduler
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
