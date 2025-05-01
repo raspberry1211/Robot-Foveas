@@ -11,10 +11,11 @@ def main():
     # Training parameters
     batch_size = 128
     num_epochs = 100
-    learning_rate = 5e-4
+    learning_rate = 1e-4  # Reduced from 5e-4
     num_workers = 4
     n_fixations = 1  # Number of fixations for the active vision model
     max_grad_norm = 1.0  # Gradient clipping threshold
+    weight_decay = 0.05  # Increased from 0.01
     
     # Model parameters
     radius = 0.6
@@ -25,12 +26,12 @@ def main():
     ds_sigma = 0.05
     ds_max_ord = 2
     
-    # Data augmentation and normalization
+    # Enhanced data augmentation
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(224),
+        transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),
         transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
-        transforms.RandomRotation(15),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
+        transforms.RandomRotation(30),
         transforms.ToTensor(),
         transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -95,12 +96,17 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     
-    # Loss function and optimizer
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.01)
+    # Loss function and optimizer with increased weight decay
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.2)  # Increased from 0.1
+    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
     # Learning rate scheduler
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
+    
+    # Early stopping parameters
+    patience = 5
+    best_val_acc = 0
+    patience_counter = 0
     
     # Training loop
     for epoch in range(num_epochs):
@@ -114,19 +120,14 @@ def main():
             
             optimizer.zero_grad()
             outputs = model(inputs)
+            loss = criterion(outputs, targets)
             
-            # Check for NaN loss
-            if torch.isnan(outputs.sum()):
+            if torch.isnan(loss):
                 print("Warning: NaN loss detected, skipping batch")
                 continue
                 
-            loss = criterion(outputs, targets)
-            
-            # Gradient clipping
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
-            
             loss.backward()
-            
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
             optimizer.step()
             
             train_loss += loss.item()
@@ -158,6 +159,18 @@ def main():
         print(f'Epoch {epoch+1}/{num_epochs}:')
         print(f'Train Loss: {train_loss/len(train_loader):.4f}, Train Acc: {train_acc:.2f}%')
         print(f'Val Loss: {val_loss/len(val_loader):.4f}, Val Acc: {val_acc:.2f}%')
+        
+        # Early stopping
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            patience_counter = 0
+            # Save best model
+            torch.save(model.state_dict(), 'best_model.pth')
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                print(f'Early stopping triggered after {epoch+1} epochs')
+                break
         
         # Update learning rate
         scheduler.step()
