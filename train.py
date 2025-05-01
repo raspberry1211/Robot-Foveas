@@ -79,7 +79,10 @@ def main():
             
         def __getitem__(self, idx):
             img, label = self.dataset[idx]
-            global_label = self.class_mapping[(self.version, label)]
+            if self.version == 'X':  # Validation set - use direct mapping
+                global_label = label
+            else:  # Training set - use version-specific mapping
+                global_label = self.class_mapping[(self.version, label)]
             return img, global_label
             
         def __len__(self):
