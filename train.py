@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import ConcatDataset, Subset, DataLoader
 from torchvision import datasets, transforms
 from FovConvNeXt.models import make_model
+import numpy as np
 import os
 
 def main():
@@ -25,16 +26,18 @@ def main():
     patch_max_ord = 2
     ds_sigma = 0.05
     ds_max_ord = 2
+
+    print('Loading data')
     
     # Dataset paths
     TRAIN_PATHS = [
-        "/data/imagenet-100/train.X1",
-        "/data/imagenet-100/train.X2",
-        "/data/imagenet-100/train.X3",
-        "/data/imagenet-100/train.X4"
+        "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X1",
+        "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X2",
+        "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X3",
+        "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X4"
     ]
 
-    VAL_PATH = "/data/imagenet-100/val.X"
+    VAL_PATH = "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/val.X"
 
     # Modify the training transformation pipeline
     train_transform = transforms.Compose([
@@ -43,19 +46,17 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    # val_test_transform = transforms.Compose([
-    #     transforms.Resize((64, 64)),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    # ])
+    val_test_transform = transforms.Compose([
+        transforms.Resize((64, 64)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
 
 
     # Load training datasets from multiple folders and combine them
     train_datasets = [datasets.ImageFolder(path) for path in TRAIN_PATHS]
     combined_train_dataset = ConcatDataset(train_datasets)
 
-    # # Load validation dataset
-    # val_dataset = datasets.ImageFolder(VAL_PATH)
 
     def split_dataset(dataset, train_size, test_size):
         """Split the dataset into training and test"""
@@ -100,9 +101,6 @@ def main():
     )
 
 
-    # # Apply transform to validation dataset
-    # val_dataset = TransformDataset(val_dataset, val_test_transform)
-
     # Create DataLoaders
     batch_size = 256  # Adjust this value as needed
 
@@ -115,15 +113,6 @@ def main():
         drop_last=True
     )
 
-    # val_loader = DataLoader(
-    #     val_dataset,
-    #     batch_size=batch_size,
-    #     shuffle=False,
-    #     num_workers=4,
-    #     pin_memory=True,
-    #     drop_last=True
-    # )
-
     test_loader = DataLoader(
         test_dataset,
         batch_size=batch_size,
@@ -133,11 +122,13 @@ def main():
         drop_last=True
     )
 
+    print('Data loaded')
+
     
     # Create model with correct number of classes
     model = make_model(
         n_fixations=n_fixations,
-        n_classes=n_classes,  # Use full 100 classes
+        n_classes=100,  # Use full 100 classes
         radius=radius,
         block_sigma=block_sigma,
         block_max_ord=block_max_ord,
@@ -216,7 +207,7 @@ def main():
         print(f'Test Loss: {test_loss/len(test_loader):.4f}, Val Acc: {test_acc:.2f}%')
         
         # Early stopping
-        if test_acc > test_val_acc:
+        if test_acc > best_test_acc:
             best_test_acc = test_acc
             patience_counter = 0
             # Save best model
@@ -251,6 +242,44 @@ def main():
                 'train_acc': train_acc,
                 'test_acc': test_acc
             }, f'3_checkpoint_epoch_{epoch+1}.pth')
+
+    # Once training is complete, validate
+    # Load validation dataset
+    val_dataset = datasets.ImageFolder(VAL_PATH)
+
+    # Apply transform to validation dataset
+    val_dataset = TransformDataset(val_dataset, val_test_transform)
+
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+        drop_last=True
+    )
+
+    # Validation
+    model.eval()
+    val_loss = 0.0
+    val_correct = 0
+    val_total = 0
+        
+    with torch.no_grad():
+        for inputs, targets in test_loader:
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+                
+            val_loss += loss.item()
+            _, predicted = outputs.max(1)
+            val_total += targets.size(0)
+            val_correct += predicted.eq(targets).sum().item()
+
+    val_acc = 100. * val_correct / val_total
+    print(f'Final Validation Loss: {val_loss/len(val_loader):.4f}, Val Acc: {val_acc:.2f}%')
+
+    
 
 if __name__ == '__main__':
     main() 
