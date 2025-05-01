@@ -16,8 +16,20 @@ class Centroid1d(nn.Module):
         super().__init__()
     
     def forward(self, x, coords):
-        out = torch.sum(x * coords[None,:])
-        out = out / torch.sum(x, dim=-1)
+        # Calculate the sum of x
+        denominator = torch.sum(x, dim=-1)
+        
+        # Use a relative threshold based on the maximum value
+        max_val = torch.max(torch.abs(x))
+        threshold = max_val * 1e-6
+        
+        # Only apply the division if the denominator is above the threshold
+        mask = denominator > threshold
+        out = torch.zeros_like(denominator)
+        
+        # Apply division only where denominator is significant
+        out[mask] = torch.sum(x[mask] * coords[None,:], dim=-1) / denominator[mask]
+        
         return out
     
 class ExpCentroid1d(nn.Module):

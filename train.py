@@ -11,9 +11,10 @@ def main():
     # Training parameters
     batch_size = 128
     num_epochs = 100
-    learning_rate = 1e-3
+    learning_rate = 5e-4
     num_workers = 4
     n_fixations = 1  # Number of fixations for the active vision model
+    max_grad_norm = 1.0  # Gradient clipping threshold
     
     # Model parameters
     radius = 0.6
@@ -113,8 +114,19 @@ def main():
             
             optimizer.zero_grad()
             outputs = model(inputs)
+            
+            # Check for NaN loss
+            if torch.isnan(outputs.sum()):
+                print("Warning: NaN loss detected, skipping batch")
+                continue
+                
             loss = criterion(outputs, targets)
+            
+            # Gradient clipping
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
+            
             loss.backward()
+            
             optimizer.step()
             
             train_loss += loss.item()
