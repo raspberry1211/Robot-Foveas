@@ -1,0 +1,10 @@
+checkpoint_epoch_100.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_10.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_20.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_30.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_50.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_60.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_80.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_90.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_40.pth filter=lfs diff=lfs merge=lfs -text
+checkpoint_epoch_70.pth filter=lfs diff=lfs merge=lfs -text
