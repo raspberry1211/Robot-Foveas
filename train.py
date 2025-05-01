@@ -104,43 +104,43 @@ def main():
     val_dataset = MappedDataset(val_dataset, 'X', class_mapping)
     print(f'Validation samples: {len(val_dataset)}')
     
-    # Detailed dataset verification
-    print('\nDetailed Dataset Verification:')
+    # # Detailed dataset verification
+    # print('\nDetailed Dataset Verification:')
     
-    # Check class distribution in training set
-    train_class_counts = {}
-    for dataset in mapped_datasets:
-        for _, label in dataset:
-            train_class_counts[label] = train_class_counts.get(label, 0) + 1
-    print('\nTraining set class distribution:')
-    for label, count in sorted(train_class_counts.items()):
-        print(f'Class {label}: {count} samples')
+    # # Check class distribution in training set
+    # train_class_counts = {}
+    # for dataset in mapped_datasets:
+    #     for _, label in dataset:
+    #         train_class_counts[label] = train_class_counts.get(label, 0) + 1
+    # print('\nTraining set class distribution:')
+    # for label, count in sorted(train_class_counts.items()):
+    #     print(f'Class {label}: {count} samples')
     
-    # Check class distribution in validation set
-    val_class_counts = {}
-    for _, label in val_dataset:
-        val_class_counts[label] = val_class_counts.get(label, 0) + 1
-    print('\nValidation set class distribution:')
-    for label, count in sorted(val_class_counts.items()):
-        print(f'Class {label}: {count} samples')
+    # # Check class distribution in validation set
+    # val_class_counts = {}
+    # for _, label in val_dataset:
+    #     val_class_counts[label] = val_class_counts.get(label, 0) + 1
+    # print('\nValidation set class distribution:')
+    # for label, count in sorted(val_class_counts.items()):
+    #     print(f'Class {label}: {count} samples')
     
-    # Check for missing classes
-    train_classes = set(train_class_counts.keys())
-    val_classes = set(val_class_counts.keys())
-    missing_in_val = train_classes - val_classes
-    missing_in_train = val_classes - train_classes
+    # # Check for missing classes
+    # train_classes = set(train_class_counts.keys())
+    # val_classes = set(val_class_counts.keys())
+    # missing_in_val = train_classes - val_classes
+    # missing_in_train = val_classes - train_classes
     
-    if missing_in_val:
-        print(f'\nWarning: {len(missing_in_val)} classes present in training but missing in validation:')
-        print(sorted(missing_in_val))
-    if missing_in_train:
-        print(f'\nWarning: {len(missing_in_train)} classes present in validation but missing in training:')
-        print(sorted(missing_in_train))
+    # if missing_in_val:
+    #     print(f'\nWarning: {len(missing_in_val)} classes present in training but missing in validation:')
+    #     print(sorted(missing_in_val))
+    # if missing_in_train:
+    #     print(f'\nWarning: {len(missing_in_train)} classes present in validation but missing in training:')
+    #     print(sorted(missing_in_train))
     
-    # Check data paths
-    print('\nChecking data paths:')
-    print(f'Training path: data/imagenet-100/train.X1')
-    print(f'Validation path: data/imagenet-100/val.X')
+    # # Check data paths
+    # print('\nChecking data paths:')
+    # print(f'Training path: data/imagenet-100/train.X1')
+    # print(f'Validation path: data/imagenet-100/val.X')
     
     # Create data loaders
     train_loader = DataLoader(
@@ -172,15 +172,15 @@ def main():
     n_classes = 100  # We know it's ImageNet-100
     print(f'\nUsing {n_classes} classes for model')
     
-    # Check for duplicate samples
-    train_paths = set()
-    for dataset in mapped_datasets:
-        for path, _ in dataset.dataset.samples:
-            train_paths.add(path)
-    val_paths = set(path for path, _ in val_dataset.dataset.samples)
-    duplicates = train_paths.intersection(val_paths)
-    if duplicates:
-        print(f'Warning: Found {len(duplicates)} duplicate samples between train and val sets')
+    # # Check for duplicate samples
+    # train_paths = set()
+    # for dataset in mapped_datasets:
+    #     for path, _ in dataset.dataset.samples:
+    #         train_paths.add(path)
+    # val_paths = set(path for path, _ in val_dataset.dataset.samples)
+    # duplicates = train_paths.intersection(val_paths)
+    # if duplicates:
+    #     print(f'Warning: Found {len(duplicates)} duplicate samples between train and val sets')
     
     # Create model with correct number of classes
     model = make_model(
