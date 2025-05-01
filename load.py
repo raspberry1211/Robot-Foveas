@@ -4,7 +4,7 @@ import glob
 
 def load_latest_checkpoint():
     # Find all checkpoint files
-    checkpoint_files = glob.glob('checkpoint_epoch_*.pth')
+    checkpoint_files = glob.glob('train_2_checkpoint_epoch_*.pth')
     if not checkpoint_files:
         print("No checkpoint files found!")
         return None

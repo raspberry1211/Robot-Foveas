@@ -26,164 +26,113 @@ def main():
     ds_sigma = 0.05
     ds_max_ord = 2
     
-    # Enhanced data augmentation
+    # Dataset paths
+    TRAIN_PATHS = [
+        "/data/imagenet-100/train.X1",
+        "/data/imagenet-100/train.X2",
+        "/data/imagenet-100/train.X3",
+        "/data/imagenet-100/train.X4"
+    ]
+
+    VAL_PATH = "/data/imagenet-100/val.X"
+
+    # Modify the training transformation pipeline
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),
-        transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
-        transforms.RandomRotation(30),
+        transforms.Resize((64, 64)),
         transforms.ToTensor(),
-        transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
-    
-    val_transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                           std=[0.229, 0.224, 0.225])
-    ])
-    
-    # Load ImageNet-100 dataset with different foveated versions
-    train_datasets = []
-    class_mapping = {}  # Maps (version, class) to global class index
-    current_global_class = 0
-    
-    for version_idx, version in enumerate(['X1', 'X2', 'X3', 'X4']):
-        dataset = datasets.ImageFolder(
-            root=f'data/imagenet-100/train.{version}',
-            transform=train_transform
-        )
+
+    # val_test_transform = transforms.Compose([
+    #     transforms.Resize((64, 64)),
+    #     transforms.ToTensor(),
+    #     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    # ])
+
+
+    # Load training datasets from multiple folders and combine them
+    train_datasets = [datasets.ImageFolder(path) for path in TRAIN_PATHS]
+    combined_train_dataset = ConcatDataset(train_datasets)
+
+    # # Load validation dataset
+    # val_dataset = datasets.ImageFolder(VAL_PATH)
+
+    def split_dataset(dataset, train_size, test_size):
+        """Split the dataset into training and test"""
+        total_size = len(dataset)
+        indices = np.arange(total_size)
+        np.random.shuffle(indices)
         
-        # Create mapping for this version's classes
-        version_classes = set()
-        for _, label in dataset:
-            version_classes.add(label)
+        train_indices = indices[:train_size]
+        test_indices = indices[train_size:train_size+test_size]
         
-        # Map local classes to global classes
-        for local_class in sorted(version_classes):
-            class_mapping[(version, local_class)] = current_global_class
-            current_global_class += 1
-        
-        print(f'Loaded training dataset {version} with {len(dataset)} samples')
-        train_datasets.append(dataset)
-    
-    # Create a wrapper dataset that applies the class mapping
-    class MappedDataset(torch.utils.data.Dataset):
-        def __init__(self, dataset, version, class_mapping):
+        return train_indices, test_indices
+
+    # Custom dataset class to apply different transforms
+    class TransformDataset(torch.utils.data.Dataset):
+        def __init__(self, dataset, transform):
             self.dataset = dataset
-            self.version = version
-            self.class_mapping = class_mapping
-            
-        def __getitem__(self, idx):
-            img, label = self.dataset[idx]
-            if self.version == 'X':  # Validation set - use direct mapping
-                global_label = label
-            else:  # Training set - use version-specific mapping
-                global_label = self.class_mapping[(self.version, label)]
-            return img, global_label
-            
+            self.transform = transform
+        
+        def __getitem__(self, index):
+            x, y = self.dataset[index]
+            return self.transform(x), y
+        
         def __len__(self):
             return len(self.dataset)
-    
-    # Apply class mapping to each dataset
-    mapped_datasets = []
-    for version, dataset in zip(['X1', 'X2', 'X3', 'X4'], train_datasets):
-        mapped_datasets.append(MappedDataset(dataset, version, class_mapping))
-    
-    # Combine all training datasets
-    train_dataset = torch.utils.data.ConcatDataset(mapped_datasets)
-    print(f'Total training samples: {len(train_dataset)}')
-    
-    # Load validation set
-    val_dataset = datasets.ImageFolder(
-        root='data/imagenet-100/val.X',
-        transform=val_transform
+
+    # Split the training dataset
+    train_indices, test_indices = split_dataset(
+        combined_train_dataset,
+        train_size=6444,
+        test_size=900,
     )
-    
-    # Create mapped validation dataset
-    val_dataset = MappedDataset(val_dataset, 'X', class_mapping)
-    print(f'Validation samples: {len(val_dataset)}')
-    
-    # # Detailed dataset verification
-    # print('\nDetailed Dataset Verification:')
-    
-    # # Check class distribution in training set
-    # train_class_counts = {}
-    # for dataset in mapped_datasets:
-    #     for _, label in dataset:
-    #         train_class_counts[label] = train_class_counts.get(label, 0) + 1
-    # print('\nTraining set class distribution:')
-    # for label, count in sorted(train_class_counts.items()):
-    #     print(f'Class {label}: {count} samples')
-    
-    # # Check class distribution in validation set
-    # val_class_counts = {}
-    # for _, label in val_dataset:
-    #     val_class_counts[label] = val_class_counts.get(label, 0) + 1
-    # print('\nValidation set class distribution:')
-    # for label, count in sorted(val_class_counts.items()):
-    #     print(f'Class {label}: {count} samples')
-    
-    # # Check for missing classes
-    # train_classes = set(train_class_counts.keys())
-    # val_classes = set(val_class_counts.keys())
-    # missing_in_val = train_classes - val_classes
-    # missing_in_train = val_classes - train_classes
-    
-    # if missing_in_val:
-    #     print(f'\nWarning: {len(missing_in_val)} classes present in training but missing in validation:')
-    #     print(sorted(missing_in_val))
-    # if missing_in_train:
-    #     print(f'\nWarning: {len(missing_in_train)} classes present in validation but missing in training:')
-    #     print(sorted(missing_in_train))
-    
-    # # Check data paths
-    # print('\nChecking data paths:')
-    # print(f'Training path: data/imagenet-100/train.X1')
-    # print(f'Validation path: data/imagenet-100/val.X')
-    
-    # Create data loaders
+
+    # Create subsets with appropriate transforms
+    train_dataset = TransformDataset(
+        Subset(combined_train_dataset, train_indices),
+        train_transform
+    )
+
+    test_dataset = TransformDataset(
+        Subset(combined_train_dataset, test_indices),
+        val_test_transform
+    )
+
+
+    # # Apply transform to validation dataset
+    # val_dataset = TransformDataset(val_dataset, val_test_transform)
+
+    # Create DataLoaders
+    batch_size = 256  # Adjust this value as needed
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=num_workers,
-        pin_memory=True
+        num_workers=4,
+        pin_memory=True,
+        drop_last=True
     )
-    
-    val_loader = DataLoader(
-        val_dataset,
+
+    # val_loader = DataLoader(
+    #     val_dataset,
+    #     batch_size=batch_size,
+    #     shuffle=False,
+    #     num_workers=4,
+    #     pin_memory=True,
+    #     drop_last=True
+    # )
+
+    test_loader = DataLoader(
+        test_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=num_workers,
-        pin_memory=True
+        num_workers=4,
+        pin_memory=True,
+        drop_last=True
     )
-    
-    # Verify data loading
-    print('\nVerifying data loading...')
-    train_sample, train_label = next(iter(train_loader))
-    val_sample, val_label = next(iter(val_loader))
-    print(f'Training batch shape: {train_sample.shape}')
-    print(f'Validation batch shape: {val_sample.shape}')
-    print(f'Training label range: {train_label.min()} to {train_label.max()}')
-    print(f'Validation label range: {val_label.min()} to {val_label.max()}')
-    
-    # Get actual number of classes
-    n_classes = 100  # We know it's ImageNet-100
-    print(f'\nUsing {n_classes} classes for model')
-    
-    # # Check for duplicate samples
-    # train_paths = set()
-    # for dataset in mapped_datasets:
-    #     for path, _ in dataset.dataset.samples:
-    #         train_paths.add(path)
-    # val_paths = set(path for path, _ in val_dataset.dataset.samples)
-    # duplicates = train_paths.intersection(val_paths)
-    # if duplicates:
-    #     print(f'Warning: Found {len(duplicates)} duplicate samples between train and val sets')
+
     
     # Create model with correct number of classes
     model = make_model(
@@ -210,8 +159,8 @@ def main():
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
     
     # Early stopping parameters
-    patience = 5
-    best_val_acc = 0
+    patience = 10
+    best_test_acc = 0
     patience_counter = 0
     
     # Training loop
@@ -243,35 +192,44 @@ def main():
         
         # Validation
         model.eval()
-        val_loss = 0.0
-        val_correct = 0
-        val_total = 0
+        test_loss = 0.0
+        test_correct = 0
+        test_total = 0
         
         with torch.no_grad():
-            for inputs, targets in val_loader:
+            for inputs, targets in test_loader:
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = criterion(outputs, targets)
                 
-                val_loss += loss.item()
+                test_loss += loss.item()
                 _, predicted = outputs.max(1)
-                val_total += targets.size(0)
-                val_correct += predicted.eq(targets).sum().item()
+                test_total += targets.size(0)
+                test_correct += predicted.eq(targets).sum().item()
         
         # Print statistics
         train_acc = 100. * train_correct / train_total
-        val_acc = 100. * val_correct / val_total
+        test_acc = 100. * test_correct / test_total
         
         print(f'Epoch {epoch+1}/{num_epochs}:')
         print(f'Train Loss: {train_loss/len(train_loader):.4f}, Train Acc: {train_acc:.2f}%')
-        print(f'Val Loss: {val_loss/len(val_loader):.4f}, Val Acc: {val_acc:.2f}%')
+        print(f'Test Loss: {test_loss/len(test_loader):.4f}, Val Acc: {test_acc:.2f}%')
         
         # Early stopping
-        if val_acc > best_val_acc:
-            best_val_acc = val_acc
+        if test_acc > test_val_acc:
+            best_test_acc = test_acc
             patience_counter = 0
             # Save best model
-            torch.save(model.state_dict(), 'best_model.pth')
+            torch.save({
+                'epoch': epoch + 1,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict(),
+                'train_loss': train_loss/len(train_loader),
+                'test_loss': test_loss/len(test_loader),
+                'train_acc': train_acc,
+                'test_acc': test_acc
+            }, '3_best_model.pth')
         else:
             patience_counter += 1
             if patience_counter >= patience:
@@ -289,10 +247,10 @@ def main():
                 'optimizer_state_dict': optimizer.state_dict(),
                 'scheduler_state_dict': scheduler.state_dict(),
                 'train_loss': train_loss/len(train_loader),
-                'val_loss': val_loss/len(val_loader),
+                'test_loss': test_loss/len(test_loader),
                 'train_acc': train_acc,
-                'val_acc': val_acc
-            }, f'train_2_checkpoint_epoch_{epoch+1}.pth')
+                'test_acc': test_acc
+            }, f'3_checkpoint_epoch_{epoch+1}.pth')
 
 if __name__ == '__main__':
     main() 
