@@ -48,22 +48,60 @@ def main():
     
     # Load ImageNet-100 dataset with different foveated versions
     train_datasets = []
-    for version in ['X1', 'X2', 'X3', 'X4']:
+    class_mapping = {}  # Maps (version, class) to global class index
+    current_global_class = 0
+    
+    for version_idx, version in enumerate(['X1', 'X2', 'X3', 'X4']):
         dataset = datasets.ImageFolder(
             root=f'data/imagenet-100/train.{version}',
             transform=train_transform
         )
-        train_datasets.append(dataset)
+        
+        # Create mapping for this version's classes
+        version_classes = set()
+        for _, label in dataset:
+            version_classes.add(label)
+        
+        # Map local classes to global classes
+        for local_class in sorted(version_classes):
+            class_mapping[(version, local_class)] = current_global_class
+            current_global_class += 1
+        
         print(f'Loaded training dataset {version} with {len(dataset)} samples')
+        train_datasets.append(dataset)
+    
+    # Create a wrapper dataset that applies the class mapping
+    class MappedDataset(torch.utils.data.Dataset):
+        def __init__(self, dataset, version, class_mapping):
+            self.dataset = dataset
+            self.version = version
+            self.class_mapping = class_mapping
+            
+        def __getitem__(self, idx):
+            img, label = self.dataset[idx]
+            global_label = self.class_mapping[(self.version, label)]
+            return img, global_label
+            
+        def __len__(self):
+            return len(self.dataset)
+    
+    # Apply class mapping to each dataset
+    mapped_datasets = []
+    for version, dataset in zip(['X1', 'X2', 'X3', 'X4'], train_datasets):
+        mapped_datasets.append(MappedDataset(dataset, version, class_mapping))
     
     # Combine all training datasets
-    train_dataset = torch.utils.data.ConcatDataset(train_datasets)
+    train_dataset = torch.utils.data.ConcatDataset(mapped_datasets)
     print(f'Total training samples: {len(train_dataset)}')
     
+    # Load validation set
     val_dataset = datasets.ImageFolder(
-        root='data/imagenet-100/val.X',  # Using foveated validation set
+        root='data/imagenet-100/val.X',
         transform=val_transform
     )
+    
+    # Create mapped validation dataset
+    val_dataset = MappedDataset(val_dataset, 'X', class_mapping)
     print(f'Validation samples: {len(val_dataset)}')
     
     # Detailed dataset verification
@@ -71,7 +109,7 @@ def main():
     
     # Check class distribution in training set
     train_class_counts = {}
-    for dataset in train_datasets:
+    for dataset in mapped_datasets:
         for _, label in dataset:
             train_class_counts[label] = train_class_counts.get(label, 0) + 1
     print('\nTraining set class distribution:')
@@ -104,8 +142,7 @@ def main():
     print(f'Training path: data/imagenet-100/train.X1')
     print(f'Validation path: data/imagenet-100/val.X')
     
-    # Verify data loading
-    print('\nVerifying data loading...')
+    # Create data loaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -113,6 +150,7 @@ def main():
         num_workers=num_workers,
         pin_memory=True
     )
+    
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
@@ -120,6 +158,9 @@ def main():
         num_workers=num_workers,
         pin_memory=True
     )
+    
+    # Verify data loading
+    print('\nVerifying data loading...')
     train_sample, train_label = next(iter(train_loader))
     val_sample, val_label = next(iter(val_loader))
     print(f'Training batch shape: {train_sample.shape}')
@@ -127,16 +168,16 @@ def main():
     print(f'Training label range: {train_label.min()} to {train_label.max()}')
     print(f'Validation label range: {val_label.min()} to {val_label.max()}')
     
-    # Get actual number of classes from training data
-    n_classes = max(train_label.max().item(), val_label.max().item()) + 1
+    # Get actual number of classes
+    n_classes = 100  # We know it's ImageNet-100
     print(f'\nUsing {n_classes} classes for model')
     
     # Check for duplicate samples
     train_paths = set()
-    for dataset in train_datasets:
-        for path, _ in dataset.samples:
+    for dataset in mapped_datasets:
+        for path, _ in dataset.dataset.samples:
             train_paths.add(path)
-    val_paths = set(path for path, _ in val_dataset.samples)
+    val_paths = set(path for path, _ in val_dataset.dataset.samples)
     duplicates = train_paths.intersection(val_paths)
     if duplicates:
         print(f'Warning: Found {len(duplicates)} duplicate samples between train and val sets')
@@ -144,7 +185,7 @@ def main():
     # Create model with correct number of classes
     model = make_model(
         n_fixations=n_fixations,
-        n_classes=n_classes,  # Use actual number of classes
+        n_classes=n_classes,  # Use full 100 classes
         radius=radius,
         block_sigma=block_sigma,
         block_max_ord=block_max_ord,
