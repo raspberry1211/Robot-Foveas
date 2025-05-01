@@ -117,7 +117,6 @@ class GConv(nn.Module):
         return x
         
     def compute_support(self):
-
         ### KNN ###
         tree = KDTree(self.l1)
         dists, idx = tree.query(self.l2, k=self.k)
@@ -126,26 +125,34 @@ class GConv(nn.Module):
         
         ### Extracting and Normalizing Patches
         patches = self.l1[idx]
-
         patches = patches - self.l2[:,None,:]
         
-        ### 1:7 for stability 
-        patches = patches / torch.mean(dists[:,1:7], dim=-1)[:,None,None]
+        ### Add numerical stability to distance normalization
+        mean_dists = torch.mean(dists[:,1:7], dim=-1)
+        # Add small epsilon to prevent division by zero
+        mean_dists = torch.clamp(mean_dists, min=1e-6)
+        patches = patches / mean_dists[:,None,None]
         
         return patches, idx
     
     def compute_filter_weights(self, patch_coords):
         x, y = patch_coords[...,0], patch_coords[...,1]
         weights = self.basis(x, y, self.sigma)
-        ### Filter Normalization
+        
+        ### Filter Normalization with numerical stability
         # mean centre AC Filters
         weights[1:] = weights[1:] - torch.mean(weights[1:], dim=-1, keepdims=True)
         
-        # l2 normalize
-        weights[1:] = weights[1:] / torch.sqrt(torch.sum(weights[1:]**2, dim=-1, keepdims=True))
+        # l2 normalize with epsilon
+        norm = torch.sqrt(torch.sum(weights[1:]**2, dim=-1, keepdims=True))
+        norm = torch.clamp(norm, min=1e-6)
+        weights[1:] = weights[1:] / norm
         
-        # l1 normalize dc filter i.e. gaussian filter
-        weights[0] = weights[0] / torch.sum(weights[0], dim=-1, keepdims=True)
+        # l1 normalize dc filter with epsilon
+        sum_weights = torch.sum(weights[0], dim=-1, keepdims=True)
+        sum_weights = torch.clamp(sum_weights, min=1e-6)
+        weights[0] = weights[0] / sum_weights
+        
         return weights
 
 class DWise(GConv):
@@ -213,25 +220,32 @@ class GConvV2(nn.Module):
         support = l1.unsqueeze(0) - l2.unsqueeze(1)
         
         x, y = support.permute(2, 0, 1)
-        
         r = torch.sqrt(x**2 + y**2)
         
+        # Add numerical stability to local support calculation
         local_support = torch.sort(r, dim=1)[0][:,1:6]
         local_support = torch.mean(local_support, dim=-1)[None, :]
+        local_support = torch.clamp(local_support, min=1e-6)
+        
         x = x / local_support
         y = y / local_support
 
         weights = self.basis(x, y, self.sigma)
         
-        ### Filter Normalization
+        ### Filter Normalization with numerical stability
         # mean centre AC Filters
         weights[1:] = weights[1:] - torch.mean(weights[1:], dim=-2, keepdims=True)
         
-        # l2 normalize
-        weights[1:] = weights[1:] / torch.sqrt(torch.sum(weights[1:]**2, dim=-2, keepdims=True))
+        # l2 normalize with epsilon
+        norm = torch.sqrt(torch.sum(weights[1:]**2, dim=-2, keepdims=True))
+        norm = torch.clamp(norm, min=1e-6)
+        weights[1:] = weights[1:] / norm
         
-        # l1 normalize dc filter i.e. gaussian filter
-        weights[0] = weights[0] / torch.sum(weights[0], dim=-2, keepdims=True)
+        # l1 normalize dc filter with epsilon
+        sum_weights = torch.sum(weights[0], dim=-2, keepdims=True)
+        sum_weights = torch.clamp(sum_weights, min=1e-6)
+        weights[0] = weights[0] / sum_weights
+        
         return weights
     
 class ConvV2(GConvV2):
