@@ -54,15 +54,20 @@ def main():
             transform=train_transform
         )
         train_datasets.append(dataset)
+        print(f'Loaded training dataset {version} with {len(dataset)} samples')
     
     # Combine all training datasets
     train_dataset = torch.utils.data.ConcatDataset(train_datasets)
+    print(f'Total training samples: {len(train_dataset)}')
     
     val_dataset = datasets.ImageFolder(
         root='data/imagenet-100/val.X',  # Using foveated validation set
         transform=val_transform
     )
+    print(f'Validation samples: {len(val_dataset)}')
     
+    # Verify data loading
+    print('\nVerifying data loading...')
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -70,7 +75,6 @@ def main():
         num_workers=num_workers,
         pin_memory=True
     )
-    
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
@@ -78,6 +82,22 @@ def main():
         num_workers=num_workers,
         pin_memory=True
     )
+    train_sample, train_label = next(iter(train_loader))
+    val_sample, val_label = next(iter(val_loader))
+    print(f'Training batch shape: {train_sample.shape}')
+    print(f'Validation batch shape: {val_sample.shape}')
+    print(f'Training label range: {train_label.min()} to {train_label.max()}')
+    print(f'Validation label range: {val_label.min()} to {val_label.max()}')
+    
+    # Check for duplicate samples
+    train_paths = set()
+    for dataset in train_datasets:
+        for path, _ in dataset.samples:
+            train_paths.add(path)
+    val_paths = set(path for path, _ in val_dataset.samples)
+    duplicates = train_paths.intersection(val_paths)
+    if duplicates:
+        print(f'Warning: Found {len(duplicates)} duplicate samples between train and val sets')
     
     # Create model with reduced complexity
     model = make_model(
