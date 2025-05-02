@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import ConcatDataset, Subset, DataLoader
 from torchvision import datasets, transforms
+from torchvision import models
 from FovConvNeXt.models import make_model
 import numpy as np
 import os
@@ -10,13 +11,13 @@ import os
 def main():
     print('Beginning training...')
     # Training parameters
-    batch_size = 128
+    batch_size = 256
     num_epochs = 100
-    learning_rate = 1e-4  # Reduced from 5e-4
+    learning_rate = 5e-4  
     num_workers = 4
-    n_fixations = 1  # Number of fixations for the active vision model
+    n_fixations = 3  # Number of fixations for the active vision model
     max_grad_norm = 1.0  # Gradient clipping threshold
-    weight_decay = 0.05  # Increased from 0.01
+    weight_decay = 0.01 
     
     # Model parameters
     radius = 0.6
@@ -101,9 +102,6 @@ def main():
     )
 
 
-    # Create DataLoaders
-    batch_size = 256  # Adjust this value as needed
-
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -126,28 +124,30 @@ def main():
 
     
     # Create model with correct number of classes
-    model = make_model(
-        n_fixations=n_fixations,
-        n_classes=100,  # Use full 100 classes
-        radius=radius,
-        block_sigma=block_sigma,
-        block_max_ord=block_max_ord,
-        patch_sigma=patch_sigma,
-        patch_max_ord=patch_max_ord,
-        ds_sigma=ds_sigma,
-        ds_max_ord=ds_max_ord
-    )
+    # model = make_model(
+    #     n_fixations=n_fixations,
+    #     n_classes=100,  # Use full 100 classes
+    #     radius=radius,
+    #     block_sigma=block_sigma,
+    #     block_max_ord=block_max_ord,
+    #     patch_sigma=patch_sigma,
+    #     patch_max_ord=patch_max_ord,
+    #     ds_sigma=ds_sigma,
+    #     ds_max_ord=ds_max_ord
+    # )
+    model = models.convnext.convnext_large()
+    print('Using untrained convnext_large')
     
     # Move model to GPU if available
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     
     # Loss function and optimizer with increased weight decay
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.2)  # Increased from 0.1
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1) 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
-    # Learning rate scheduler
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
+    # # Learning rate scheduler
+    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
     
     # Early stopping parameters
     patience = 10
@@ -204,7 +204,7 @@ def main():
         
         print(f'Epoch {epoch+1}/{num_epochs}:')
         print(f'Train Loss: {train_loss/len(train_loader):.4f}, Train Acc: {train_acc:.2f}%')
-        print(f'Test Loss: {test_loss/len(test_loader):.4f}, Val Acc: {test_acc:.2f}%')
+        print(f'Test Loss: {test_loss/len(test_loader):.4f}, Test Acc: {test_acc:.2f}%')
         
         # Early stopping
         if test_acc > best_test_acc:
@@ -215,7 +215,7 @@ def main():
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'scheduler_state_dict': scheduler.state_dict(),
+                # 'scheduler_state_dict': scheduler.state_dict(),
                 'train_loss': train_loss/len(train_loader),
                 'test_loss': test_loss/len(test_loader),
                 'train_acc': train_acc,
@@ -227,8 +227,8 @@ def main():
                 print(f'Early stopping triggered after {epoch+1} epochs')
                 break
         
-        # Update learning rate
-        scheduler.step()
+        # # Update learning rate
+        # scheduler.step()
         
         # Save checkpoint
         if (epoch + 1) % 10 == 0:
@@ -236,7 +236,7 @@ def main():
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'scheduler_state_dict': scheduler.state_dict(),
+                # 'scheduler_state_dict': scheduler.state_dict(),
                 'train_loss': train_loss/len(train_loader),
                 'test_loss': test_loss/len(test_loader),
                 'train_acc': train_acc,

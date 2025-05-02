@@ -43,6 +43,7 @@ def uniform_fibonacci(n_nodes, verbose=True):
     """
     Creates a uniform sampling pattern using a Fibonacci spiral
     """
+    print('Using uniform fibonacci')
     g_ratio = (np.sqrt(5)+1) / 2
     theta = np.pi * 2 * g_ratio * np.arange(1, n_nodes+1)
     
