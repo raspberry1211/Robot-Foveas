@@ -8,6 +8,10 @@ from FovConvNeXt.models import make_model
 import numpy as np
 import os
 
+
+# TODO: Display some images from train/test loaders & overlay the labels to make sure the labels are good
+# TODO: Plot individual guesses that have the biggest lost on the train & test datasets < good for finding potentially mislabeled items
+# TODO: Look at loss/accuracy data over time
 def main():
     print('Beginning training...')
     # Training parameters
@@ -66,7 +70,7 @@ def main():
         np.random.shuffle(indices)
         
         train_indices = indices[:train_size]
-        test_indices = indices[train_size:train_size+test_size]
+        test_indices = indices[train_size:]
         
         return train_indices, test_indices
 
@@ -86,8 +90,8 @@ def main():
     # Split the training dataset
     train_indices, test_indices = split_dataset(
         combined_train_dataset,
-        train_size=6444,
-        test_size=900,
+        train_size=6444, # Can change to percent instead for more robustness
+        test_size=900
     )
 
     # Create subsets with appropriate transforms
@@ -135,8 +139,8 @@ def main():
     #     ds_sigma=ds_sigma,
     #     ds_max_ord=ds_max_ord
     # )
-    model = models.convnext.convnext_large()
-    print('Using untrained convnext_large')
+    model = models.resnet() # make sure to u
+    print('Using resnet')
     
     # Move model to GPU if available
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -188,7 +192,8 @@ def main():
         test_total = 0
         
         with torch.no_grad():
-            for inputs, targets in test_loader:
+            # for inputs, targets in test_loader:
+            for inputs, targets in train_loader:
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = criterion(outputs, targets)
