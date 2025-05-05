@@ -15,22 +15,22 @@ import os
 def main():
     print('Beginning training...')
     # Training parameters
-    batch_size = 256
-    num_epochs = 100
-    learning_rate = 5e-4  
+    batch_size = 64
+    num_epochs = 200
+    learning_rate = 0.004
     num_workers = 4
     n_fixations = 3  # Number of fixations for the active vision model
     max_grad_norm = 1.0  # Gradient clipping threshold
-    weight_decay = 0.01 
+    weight_decay = 0.005
     
     # Model parameters
-    radius = 0.6
-    block_sigma = 0.05
-    block_max_ord = 2
-    patch_sigma = 0.05
-    patch_max_ord = 2
-    ds_sigma = 0.05
-    ds_max_ord = 2
+    radius = 0.4
+    block_sigma = 0.8
+    block_max_ord = 4
+    patch_sigma = 1.0
+    patch_max_ord = 4
+    ds_sigma = 0.6
+    ds_max_ord = 0
 
     print('Loading data')
     
