@@ -15,15 +15,15 @@ class Params:
     def __init__(self):
         self.batch_size = 64
         self.epochs = 90
-        self.lr = 0.1
+        self.lr = 0.004
         self.momentum = 0.9
-        self.weight_decay = 1e-4
+        self.weight_decay = 0.005
         self.lr_step_size = 30
         self.lr_gamma = 0.1
         self.workers = 4
         self.num_classes = 100
         self.name = "fovea_imagenet100"
-        self.resume_checkpoint = "checkpoints/fovea_imagenet100/checkpoint_epoch57.pth"
+        self.resume_checkpoint = "checkpoints/fovea1fix_imagenet100/checkpoint_epoch57.pth"
 
 params = Params()
 
@@ -33,13 +33,16 @@ print(f"Using {device} device")
 
 # ==== Transforms ====
 train_transform = transforms.Compose([
+    transforms.TrivialAugmentWide(),
+    transforms.Resize(256),
     transforms.RandomResizedCrop(224),
-    transforms.RandomHorizontalFlip(),
+    #transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225])
 ])
 val_transform = transforms.Compose([
+    transforms.TrivialAugmentWide(),
     transforms.Resize(256),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
@@ -87,14 +90,14 @@ val_loader = DataLoader(val_dataset, batch_size=params.batch_size, shuffle=False
 # model = model.to(device)
 
 # Model parameters
-n_fixations = 3  # Number of fixations for the active vision model
-radius = 0.6
-block_sigma = 0.05
-block_max_ord = 2
-patch_sigma = 0.05
-patch_max_ord = 2
-ds_sigma = 0.05
-ds_max_ord = 2
+n_fixations = 1  # Number of fixations for the active vision model
+radius = 0.4
+block_sigma = 0.8
+block_max_ord = 4
+patch_sigma = 1.0
+patch_max_ord = 4
+ds_sigma = 0.6
+ds_max_ord = 0
 
 # Create model with correct number of classes
 model = make_model(
