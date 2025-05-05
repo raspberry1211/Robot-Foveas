@@ -7,6 +7,7 @@ from torchvision import models
 from FovConvNeXt.models import make_model
 import numpy as np
 import os
+# import aug_lib
 
 
 # TODO: Display some images from train/test loaders & overlay the labels to make sure the labels are good
@@ -19,7 +20,7 @@ def main():
     num_epochs = 200
     learning_rate = 0.004
     num_workers = 4
-    n_fixations = 3  # Number of fixations for the active vision model
+    n_fixations = 1  # Number of fixations for the active vision model
     max_grad_norm = 1.0  # Gradient clipping threshold
     weight_decay = 0.005
     
@@ -44,15 +45,20 @@ def main():
 
     VAL_PATH = "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/val.X"
 
+    # augmenter = aug_lib.TrivialAugment()
+
     # Modify the training transformation pipeline
     train_transform = transforms.Compose([
-        transforms.Resize((64, 64)),
+        transforms.TrivialAugmentWide(),
+        transforms.Resize((256, 256)),
+        transforms.RandomCrop((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
     val_test_transform = transforms.Compose([
-        transforms.Resize((64, 64)),
+        transforms.Resize((256, 256)),
+        transforms.CenterCrop((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -66,14 +72,15 @@ def main():
     print(combined_train_dataset.classes)
 
 
-    def split_dataset(dataset, train_size, test_size):
+    def split_dataset(dataset, train_size):
         """Split the dataset into training and test"""
         total_size = len(dataset)
         indices = np.arange(total_size)
         np.random.shuffle(indices)
+        train_idx = int(total_size * train_size)
         
-        train_indices = indices[:train_size]
-        test_indices = indices[train_size:]
+        train_indices = indices[:train_idx]
+        test_indices = indices[train_idx:]
         
         return train_indices, test_indices
 
@@ -93,8 +100,7 @@ def main():
     # Split the training dataset
     train_indices, test_indices = split_dataset(
         combined_train_dataset,
-        train_size=6444, # Can change to percent instead for more robustness
-        test_size=900
+        train_size=0.8, # Can change to percent instead for more robustness. Used to be 6444/900 split
     )
 
     # Create subsets with appropriate transforms
@@ -153,11 +159,11 @@ def main():
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1) 
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     
-    # # Learning rate scheduler
-    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
+    # Learning rate scheduler
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
     
     # Early stopping parameters
-    patience = 10
+    patience = 20
     best_test_acc = 0
     patience_counter = 0
     
@@ -223,7 +229,7 @@ def main():
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                # 'scheduler_state_dict': scheduler.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict(),
                 'train_loss': train_loss/len(train_loader),
                 'test_loss': test_loss/len(test_loader),
                 'train_acc': train_acc,
@@ -235,8 +241,8 @@ def main():
                 print(f'Early stopping triggered after {epoch+1} epochs')
                 break
         
-        # # Update learning rate
-        # scheduler.step()
+        # Update learning rate
+        scheduler.step()
         
         # Save checkpoint
         if (epoch + 1) % 10 == 0:
@@ -244,7 +250,7 @@ def main():
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                # 'scheduler_state_dict': scheduler.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict(),
                 'train_loss': train_loss/len(train_loader),
                 'test_loss': test_loss/len(test_loader),
                 'train_acc': train_acc,
