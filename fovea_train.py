@@ -22,7 +22,8 @@ class Params:
         self.lr_gamma = 0.1
         self.workers = 4
         self.num_classes = 100
-        self.name = "resnet50_imagenet100"
+        self.name = "fovea_imagenet100"
+        self.resume_checkpoint = "checkpoints/fovea_imagenet100/checkpoint_epoch57.pth"
 
 params = Params()
 
@@ -109,12 +110,21 @@ model = make_model(
 ).to(device)
 
 # ==== Loss, Optimizer, LR Scheduler ====
-criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 optimizer = optim.SGD(model.parameters(), lr=params.lr,
                       momentum=params.momentum, weight_decay=params.weight_decay)
 lr_scheduler = optim.lr_scheduler.StepLR(optimizer,
                                          step_size=params.lr_step_size,
                                          gamma=params.lr_gamma)
+
+start_epoch = 0
+if params.resume_checkpoint is not None and os.path.isfile(params.resume_checkpoint):
+    print(f"Loading checkpoint from {params.resume_checkpoint}")
+    checkpoint = torch.load(params.resume_checkpoint, map_location=device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    start_epoch = checkpoint.get("epoch", 0) + 1
+    print(f"Resuming training from epoch {start_epoch}")
 
 # ==== Train Function ====
 def train_one_epoch(epoch):
@@ -125,6 +135,7 @@ def train_one_epoch(epoch):
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
         outputs = model(images)
+        # print("Output range:", outputs.min().item(), outputs.max().item())
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -169,7 +180,7 @@ writer = SummaryWriter(log_dir=f"runs/{params.name}")
 os.makedirs(f"checkpoints/{params.name}", exist_ok=True)
 
 # ==== Main Training Loop ====
-for epoch in range(params.epochs):
+for epoch in range(start_epoch, params.epochs):
     train_acc, train_loss = train_one_epoch(epoch)
     val_acc1, val_acc5, val_loss = evaluate(epoch)
 
