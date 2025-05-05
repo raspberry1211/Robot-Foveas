@@ -59,8 +59,11 @@ def main():
 
 
     # Load training datasets from multiple folders and combine them
-    train_datasets = [datasets.ImageFolder(path) for path in TRAIN_PATHS]
-    combined_train_dataset = ConcatDataset(train_datasets)
+    # train_datasets = [datasets.ImageFolder(path) for path in TRAIN_PATHS]
+    # combined_train_dataset = ConcatDataset(train_datasets)
+
+    combined_train_dataset = datasets.ImageFolder("/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X")
+    print(combined_train_dataset.classes)
 
 
     def split_dataset(dataset, train_size, test_size):
@@ -110,7 +113,7 @@ def main():
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=4,
+        num_workers=num_workers,
         pin_memory=True,
         drop_last=True
     )
@@ -119,7 +122,7 @@ def main():
         test_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=4,
+        num_workers=num_workers,
         pin_memory=True,
         drop_last=True
     )
@@ -128,19 +131,19 @@ def main():
 
     
     # Create model with correct number of classes
-    # model = make_model(
-    #     n_fixations=n_fixations,
-    #     n_classes=100,  # Use full 100 classes
-    #     radius=radius,
-    #     block_sigma=block_sigma,
-    #     block_max_ord=block_max_ord,
-    #     patch_sigma=patch_sigma,
-    #     patch_max_ord=patch_max_ord,
-    #     ds_sigma=ds_sigma,
-    #     ds_max_ord=ds_max_ord
-    # )
-    model = models.resnet() # make sure to u
-    print('Using resnet')
+    model = make_model(
+        n_fixations=n_fixations,
+        n_classes=100,  # Use full 100 classes
+        radius=radius,
+        block_sigma=block_sigma,
+        block_max_ord=block_max_ord,
+        patch_sigma=patch_sigma,
+        patch_max_ord=patch_max_ord,
+        ds_sigma=ds_sigma,
+        ds_max_ord=ds_max_ord
+    )
+    # model = models.alexnet() 
+    # print('Using alexnet')
     
     # Move model to GPU if available
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -193,7 +196,7 @@ def main():
         
         with torch.no_grad():
             # for inputs, targets in test_loader:
-            for inputs, targets in train_loader:
+            for inputs, targets in test_loader:
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = model(inputs)
                 loss = criterion(outputs, targets)

@@ -2,7 +2,7 @@ from .retina import *
 from .layers import Conv, DWise, ConvV2, ExpCentroid1d, AvgPool
 from .tessellations import *
 from einops import repeat
-from torchvision.models.convnext import ConvNeXt, CNBlockConfig
+# from torchvision.models.convnext import ConvNeXt, CNBlockConfig
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
