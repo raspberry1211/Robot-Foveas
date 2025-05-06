@@ -41,21 +41,19 @@ def log_fibonacci(n_nodes, fovea_radius, fovea_density, auto=False, verbose=True
 
 def uniform_fibonacci(n_nodes, verbose=True):
     """
-    Creates a uniform sampling pattern using a Fibonacci spiral
+    Generates a uniform distribution of points using Vogel's model of the sunflower capitulum.
     """
-    print('Using uniform fibonacci')
-    g_ratio = (np.sqrt(5)+1) / 2
-    theta = np.pi * 2 * g_ratio * np.arange(1, n_nodes+1)
+    if verbose:
+        print('Using Vogel uniform sunflower distribution')
     
-    # For uniform sampling, we use a linear spacing for the radius
-    r = np.linspace(0, 1, n_nodes)
-    
-    sort_idx = np.argsort(theta)
-    theta = theta[sort_idx]
-    r = r[sort_idx]
-    
+    golden_angle = np.pi * (3 - np.sqrt(5))  # ~2.39996 radians
+
+    r = np.sqrt(np.arange(1, n_nodes + 1)) / np.sqrt(n_nodes)
+    theta = np.arange(1, n_nodes + 1) * golden_angle
+
     x = r * np.cos(theta)
     y = r * np.sin(theta)
+
     out = np.stack((x, y), axis=0)
     return torch.tensor(out).float().T.contiguous()
 
