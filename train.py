@@ -234,7 +234,7 @@ def main():
                 'test_loss': test_loss/len(test_loader),
                 'train_acc': train_acc,
                 'test_acc': test_acc
-            }, '3_best_model.pth')
+            }, 'fixed_settings_best_model.pth')
         else:
             patience_counter += 1
             if patience_counter >= patience:
@@ -255,7 +255,7 @@ def main():
                 'test_loss': test_loss/len(test_loader),
                 'train_acc': train_acc,
                 'test_acc': test_acc
-            }, f'3_checkpoint_epoch_{epoch+1}.pth')
+            }, f'fixed_settings_checkpoint_epoch_{epoch+1}.pth')
 
     # Once training is complete, validate
     # Load validation dataset
