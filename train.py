@@ -83,20 +83,20 @@ def main():
         def __len__(self):
             return len(self.dataset)
 
-    # Split the training dataset
+    # Split the full dataset into training & testing
     train_indices, test_indices = split_dataset(
-        full_train_dataset,
+        full_dataset,
         train_size=0.8, # 80% of dataset is used for training, 20% for testing
     )
 
     # Create subsets with appropriate transforms
     train_dataset = TransformDataset(
-        Subset(full_train_dataset, train_indices),
+        Subset(full_dataset, train_indices),
         train_transform
     )
 
     test_dataset = TransformDataset(
-        Subset(full_train_dataset, test_indices),
+        Subset(full_dataset, test_indices),
         val_test_transform
     )
 
