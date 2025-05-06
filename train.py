@@ -7,15 +7,14 @@ from torchvision import models
 from FovConvNeXt.models import make_model
 import numpy as np
 import os
-# import aug_lib
 
-
-# TODO: Display some images from train/test loaders & overlay the labels to make sure the labels are good
-# TODO: Plot individual guesses that have the biggest lost on the train & test datasets < good for finding potentially mislabeled items
-# TODO: Look at loss/accuracy data over time
 def main():
+
+    # Print messages to let the user know how it's progressing
     print('Beginning training...')
+    
     # Training parameters
+    n_classes = 100 # Imagenet-100 has 100 classes
     batch_size = 64
     num_epochs = 200
     learning_rate = 0.004
@@ -36,11 +35,10 @@ def main():
     print('Loading data')
     
     # Dataset paths
-    TRAIN_PATHS = "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X"
-
+    DATA_PATH = "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X" # Path to all the training images. This later gets split into train & test sets
     VAL_PATH = "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/val.X"
 
-    # Modify the training transformation pipeline
+    # Training transforms
     train_transform = transforms.Compose([
         transforms.TrivialAugmentWide(),
         transforms.Resize(256),
@@ -49,6 +47,7 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
+    # Validation & Test transforms
     val_test_transform = transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop((224, 224)),
@@ -56,14 +55,8 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-
-    # Load training datasets from multiple folders and combine them
-    # train_datasets = [datasets.ImageFolder(path) for path in TRAIN_PATHS]
-    # combined_train_dataset = ConcatDataset(train_datasets)
-
-    combined_train_dataset = datasets.ImageFolder(TRAIN_PATH)
-    print(combined_train_dataset.classes)
-
+    # Load the full dataset
+    full_dataset = datasets.ImageFolder(DATA_PATH)
 
     def split_dataset(dataset, train_size):
         """Split the dataset into training and test"""
@@ -93,7 +86,7 @@ def main():
     # Split the training dataset
     train_indices, test_indices = split_dataset(
         combined_train_dataset,
-        train_size=0.8, # Can change to percent instead for more robustness. Used to be 6444/900 split
+        train_size=0.8, # 80% of dataset is used for training, 20% for testing
     )
 
     # Create subsets with appropriate transforms
@@ -107,7 +100,7 @@ def main():
         val_test_transform
     )
 
-
+    # Create data loaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -132,7 +125,7 @@ def main():
     # Create model with correct number of classes
     model = make_model(
         n_fixations=n_fixations,
-        n_classes=100,  # Use full 100 classes
+        n_classes=n_classes, 
         radius=radius,
         block_sigma=block_sigma,
         block_max_ord=block_max_ord,
@@ -141,8 +134,6 @@ def main():
         ds_sigma=ds_sigma,
         ds_max_ord=ds_max_ord
     )
-    # model = models.alexnet() 
-    # print('Using alexnet')
     
     # Move model to GPU if available
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -187,7 +178,7 @@ def main():
             train_total += targets.size(0)
             train_correct += predicted.eq(targets).sum().item()
         
-        # Validation
+        # Testing
         model.eval()
         test_loss = 0.0
         test_correct = 0
@@ -287,6 +278,6 @@ def main():
     print(f'Final Validation Loss: {val_loss/len(val_loader):.4f}, Val Acc: {val_acc:.2f}%')
 
     
-
+# Run training function
 if __name__ == '__main__':
     main() 
