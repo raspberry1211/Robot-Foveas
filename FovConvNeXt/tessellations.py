@@ -39,7 +39,7 @@ def log_fibonacci(n_nodes, fovea_radius, fovea_density, auto=False, verbose=True
     out = np.stack((x, y), axis=0)
     return torch.tensor(out).float().T.contiguous()
 
-def uniform_fibonacci(n_nodes, verbose=True):
+def uniform_sunflower(n_nodes, verbose=True):
     """
     Generates a uniform distribution of points using Vogel's model of the sunflower capitulum.
     """

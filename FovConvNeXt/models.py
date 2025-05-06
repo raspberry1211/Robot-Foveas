@@ -142,8 +142,11 @@ class ConvNext(nn.Module):
         ts = []
         for dim in spatial_dims:
             print(dim)
-            ts.append(log_fibonacci(dim, radius, 0.05, True, True))
-            # ts.append(uniform_fibonacci(dim, True))
+            if radius == 0:
+                ts.append(uniform_sunflower(dim, True))
+            else:
+                ts.append(log_fibonacci(dim, radius, 0.05, True, True))
+            
         
         return ts
 
