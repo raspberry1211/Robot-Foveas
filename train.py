@@ -36,16 +36,9 @@ def main():
     print('Loading data')
     
     # Dataset paths
-    TRAIN_PATHS = [
-        "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X1",
-        "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X2",
-        "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X3",
-        "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X4"
-    ]
+    TRAIN_PATHS = "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X"
 
     VAL_PATH = "/rhome/drfj2024/Robot-Foveas/data/imagenet-100/val.X"
-
-    # augmenter = aug_lib.TrivialAugment()
 
     # Modify the training transformation pipeline
     train_transform = transforms.Compose([
@@ -68,7 +61,7 @@ def main():
     # train_datasets = [datasets.ImageFolder(path) for path in TRAIN_PATHS]
     # combined_train_dataset = ConcatDataset(train_datasets)
 
-    combined_train_dataset = datasets.ImageFolder("/rhome/drfj2024/Robot-Foveas/data/imagenet-100/train.X")
+    combined_train_dataset = datasets.ImageFolder(TRAIN_PATH)
     print(combined_train_dataset.classes)
 
 
