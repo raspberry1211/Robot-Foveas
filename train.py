@@ -85,18 +85,18 @@ def main():
 
     # Split the training dataset
     train_indices, test_indices = split_dataset(
-        combined_train_dataset,
+        full_train_dataset,
         train_size=0.8, # 80% of dataset is used for training, 20% for testing
     )
 
     # Create subsets with appropriate transforms
     train_dataset = TransformDataset(
-        Subset(combined_train_dataset, train_indices),
+        Subset(full_train_dataset, train_indices),
         train_transform
     )
 
     test_dataset = TransformDataset(
-        Subset(combined_train_dataset, test_indices),
+        Subset(full_train_dataset, test_indices),
         val_test_transform
     )
 
