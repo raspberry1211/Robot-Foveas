@@ -1,0 +1,201 @@
+Foveated inference time: 8.4247 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.6011 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.5458 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3549 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3708 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3728 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.5276 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3663 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3676 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3398 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3640 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3739 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3732 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3642 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3604 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3696 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.4867 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3607 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3147 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3761 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.4972 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.5178 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.5094 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3652 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3718 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3722 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.5045 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.2075 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3724 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3610 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3692 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3655 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3807 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3689 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3700 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3667 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3680 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3695 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3748 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3695 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3694 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3709 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3686 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3669 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3484 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3698 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3742 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3794 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3692 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3656 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3689 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3738 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3692 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3132 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3663 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3708 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3715 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3687 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3668 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3725 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3685 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.4599 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.2144 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3610 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3584 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3599 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.4965 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3630 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3619 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3643 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3627 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3615 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3598 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3691 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3600 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3632 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.4912 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3613 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3632 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3487 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3648 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3671 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3618 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3583 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.7062 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.7885 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.7886 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.7584 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.4659 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.4870 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 2.4589 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.4365 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3602 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3653 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3702 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3651 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3688 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.2187 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3600 seconds
+Foveated model accuracy: 70.77%
+Foveated inference time: 1.3607 seconds
+Foveated model accuracy: 70.77%
+Fovea average: 1.4768
